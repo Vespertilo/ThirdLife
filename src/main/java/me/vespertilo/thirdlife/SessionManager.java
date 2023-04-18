@@ -1,5 +1,6 @@
 package me.vespertilo.thirdlife;
 
+import me.vespertilo.thirdlife.utils.ChatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -14,30 +15,41 @@ public class SessionManager {
 
     private static SessionManager sessionManager;
     private ThirdLife thirdLife;
+
     private boolean started;
+    private Player boogeyman;
 
     private SessionManager(ThirdLife thirdLife) {
         this.thirdLife = thirdLife;
     }
 
 
-    public void startBoogeymanCountdown(long ticks) {
-        long shortWait = (long) (ticks * 0.05);
-        long longWait = ticks - shortWait;
+    public void startBoogeymanCountdown(int initialMinutes, int secondaryMinutes) {
+        long initialDelay = (initialMinutes * 20L) * 60;
+        long secondaryDelay = (secondaryMinutes * 20L) * 60;
+
+        ChatUtil.sendGlobalMessage("&cThe boogeyman is going to be chosen in " + (initialMinutes + secondaryMinutes) + " minutes.");
 
         BukkitTask runnable = new BukkitRunnable() {
             @Override
             public void run() {
-                //sendChatMesssage("&cThe boogeyman is about to be chosen...");
+                ChatUtil.sendGlobalMessage(("&cThe boogeyman is going to be chosen in " + secondaryMinutes + " minutes."));
                 //playSound(Sound.BUTTON_CLICK, p.getLocation(), 1f, 1f);
                 BukkitTask runnable2 = new BukkitRunnable() {
                     @Override
                     public void run() {
-                        Player boogeyman = chooseBoogeyman();
+                        ChatUtil.sendGlobalMessage("&cThe boogeyman is about to be chosen.");
+                        BukkitTask runnable3 = new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                boogeyman = chooseBoogeyman();
+                                ChatUtil.sendGlobalMessage(boogeyman.getName());
+                            }
+                        }.runTaskLater(thirdLife, 20L * 10);
                     }
-                }.runTaskLater(thirdLife, shortWait);
+                }.runTaskLater(thirdLife, secondaryDelay);
             }
-        }.runTaskLater(thirdLife, longWait);
+        }.runTaskLater(thirdLife, initialDelay);
     }
 
     public Player chooseBoogeyman() {
@@ -57,6 +69,11 @@ public class SessionManager {
     public static void start(ThirdLife thirdLife) {
         sessionManager = new SessionManager(thirdLife);
         sessionManager.setStarted(true);
+        sessionManager.startBoogeymanCountdown(0, 0);
+    }
+
+    public Player getBoogeyman() {
+        return boogeyman;
     }
 
     public static SessionManager getSessionManager() {

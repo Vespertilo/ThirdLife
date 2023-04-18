@@ -1,0 +1,11 @@
+name: ThirdLife
+version: 0.1
+main: me.vespertilo.thirdlife.ThirdLife
+api-version: 1.19
+commands:
+  startsession:
+    description: starts a session
+    permission: op
+  config:
+    description: edits config
+    permission: op
