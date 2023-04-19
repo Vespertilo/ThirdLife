@@ -2,27 +2,50 @@ package me.vespertilo.thirdlife;
 
 import me.vespertilo.thirdlife.utils.ChatUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
 public class SessionManager {
 
-    private static SessionManager sessionManager;
     private ThirdLife thirdLife;
 
     private boolean started;
+    public boolean inGrace;
     private Player boogeyman;
 
-    private SessionManager(ThirdLife thirdLife) {
+    public boolean boogeyCured;
+
+    public SessionManager(ThirdLife thirdLife) {
         this.thirdLife = thirdLife;
     }
 
+    public void startTimerCountdown(int time, Runnable after) {
+        new BukkitRunnable() {
+            int countdown = time;
+
+            @Override
+            public void run() {
+                ChatUtil.sendGlobalTitle("&a" + countdown, "", 20);
+                ChatUtil.playGlobalSound(Sound.BLOCK_LEVER_CLICK, 1f, 1f);
+
+                if (countdown <= 0) {
+                    startTimers();
+                    after.run();
+                    this.cancel();
+                }
+                countdown--;
+            }
+        }.runTaskTimer(thirdLife, 20L, 20L);
+    }
 
     public void startBoogeymanCountdown(int initialMinutes, int secondaryMinutes) {
         long initialDelay = (initialMinutes * 20L) * 60;
@@ -34,22 +57,89 @@ public class SessionManager {
             @Override
             public void run() {
                 ChatUtil.sendGlobalMessage(("&cThe boogeyman is going to be chosen in " + secondaryMinutes + " minutes."));
-                //playSound(Sound.BUTTON_CLICK, p.getLocation(), 1f, 1f);
                 BukkitTask runnable2 = new BukkitRunnable() {
                     @Override
                     public void run() {
                         ChatUtil.sendGlobalMessage("&cThe boogeyman is about to be chosen.");
+                        ChatUtil.playGlobalSound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1f, 1f);
                         BukkitTask runnable3 = new BukkitRunnable() {
                             @Override
                             public void run() {
-                                boogeyman = chooseBoogeyman();
-                                ChatUtil.sendGlobalMessage(boogeyman.getName());
+                                rollBoogeyman();
                             }
-                        }.runTaskLater(thirdLife, 20L * 10);
+                        }.runTaskLater(thirdLife, 20L * 5);
                     }
                 }.runTaskLater(thirdLife, secondaryDelay);
             }
         }.runTaskLater(thirdLife, initialDelay);
+    }
+
+    public void startGraceCountdown(int minutes) {
+        ChatUtil.sendGlobalMessage("&aThe grace period is going to end in " + minutes + " minutes.");
+        inGrace = true;
+
+        final String colors = "cea";
+        BukkitTask runnable = new BukkitRunnable() {
+            @Override
+            public void run() {
+                ChatUtil.sendGlobalMessage(("&aThe grace period is ending!"));
+
+                BukkitTask runnable = new BukkitRunnable() {
+                    int i = 3;
+
+                    @Override
+                    public void run() {
+                        if (i > 0) {
+                            ChatUtil.sendGlobalTitle("&" + colors.charAt(i - 1) + i, "", 30);
+                            ChatUtil.playGlobalSound(Sound.BLOCK_LEVER_CLICK, 1f, 1f);
+                        }
+                        if (i == 0) {
+                            ChatUtil.sendGlobalTitle("&cPVP is now enabled.", "", 30);
+                            ChatUtil.playGlobalSound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1f, 1f);
+                            inGrace = false;
+                            this.cancel();
+                        }
+
+                        i--;
+                    }
+                }.runTaskTimer(thirdLife, 0L, 30L);
+            }
+        }.runTaskLater(thirdLife, (1200L) * minutes);
+    }
+
+    public void rollBoogeyman() {
+        boogeyman = chooseBoogeyman();
+
+        final String colors = "cea";
+        BukkitTask runnable = new BukkitRunnable() {
+            int i = 3;
+
+            @Override
+            public void run() {
+                if (i > 0) {
+                    ChatUtil.sendGlobalTitle("&" + colors.charAt(i - 1) + i, "", 30);
+                    ChatUtil.playGlobalSound(Sound.BLOCK_LEVER_CLICK, 1f, 1f);
+                }
+                if (i == 0) {
+                    ChatUtil.sendGlobalTitle("&eYou are...", "", 30);
+                }
+                if (i < 0) {
+                    ChatUtil.sendTitle(boogeyman, "&cThe Boogeyman.", "", 60);
+                    boogeyman.playSound(boogeyman.getLocation(), Sound.ITEM_GOAT_HORN_SOUND_6, 1f, 0f);
+
+                    List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
+                    players.removeIf(p -> p.getUniqueId().equals(boogeyman.getUniqueId()));
+
+                    ChatUtil.sendExclusiveTitle(players, "&aNOT the Boogeyman.", "", 60);
+                    ChatUtil.playExclusiveSound(players, Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
+                    this.cancel();
+                }
+
+                i--;
+            }
+        }.runTaskTimer(thirdLife, 0L, 30L);
+
+        ChatUtil.sendGlobalMessage(boogeyman.getName());
     }
 
     public Player chooseBoogeyman() {
@@ -62,23 +152,37 @@ public class SessionManager {
         return potentialPlayers.get(rand);
     }
 
+    public void cureBoogey() {
+        boogeyCured = true;
+        BukkitTask runnable = new BukkitRunnable() {
+            @Override
+            public void run() {
+                ChatUtil.sendTitle(boogeyman,"&cYou are cured!","",40);
+            }
+        }.runTaskLater(thirdLife, 60L);
+
+    }
+
+    public void startTimers() {
+        this.thirdLife.scoreboardManager.startTimerTick();
+    }
+
     public void setStarted(boolean started) {
         this.started = started;
     }
 
-    public static void start(ThirdLife thirdLife) {
-        sessionManager = new SessionManager(thirdLife);
-        sessionManager.setStarted(true);
-        sessionManager.startBoogeymanCountdown(0, 0);
+    public static void start(ThirdLife thirdLife, boolean grace) {
+        thirdLife.sessionManager = new SessionManager(thirdLife);
+        thirdLife.sessionManager.startTimerCountdown(3, () -> {
+            thirdLife.sessionManager.setStarted(true);
+            thirdLife.sessionManager.startBoogeymanCountdown(0, 0);
+            if(grace) {
+                thirdLife.sessionManager.startGraceCountdown(20);
+            }
+        });
     }
 
     public Player getBoogeyman() {
         return boogeyman;
     }
-
-    public static SessionManager getSessionManager() {
-        return sessionManager;
-    }
-
-
 }
