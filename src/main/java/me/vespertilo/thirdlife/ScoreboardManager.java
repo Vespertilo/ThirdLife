@@ -3,27 +3,44 @@ package me.vespertilo.thirdlife;
 import fr.mrmicky.fastboard.FastBoard;
 import me.vespertilo.thirdlife.config.ConfigHelper;
 import me.vespertilo.thirdlife.utils.ChatUtil;
+import me.vespertilo.thirdlife.utils.ColorUtil;
 import me.vespertilo.thirdlife.utils.TimeUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+
+import static me.vespertilo.thirdlife.ThirdLife.unix24hrs;
 
 public class ScoreboardManager {
 
     private final ThirdLife thirdLife;
 
-    private final HashMap<UUID, Integer> cachedTime;
+    private HashMap<UUID, Integer> cachedTime;
     private final HashMap<UUID, FastBoard> playerTimers;
+
+    private Team green;
+    private Team yellow;
+    private Team red;
+    private Scoreboard teamBoard;
 
     public ScoreboardManager(ThirdLife thirdLife) {
         this.thirdLife = thirdLife;
 
+        teamBoard = Bukkit.getScoreboardManager().getNewScoreboard();
+        green = teamBoard.registerNewTeam("Green");
+        green.setPrefix(ChatColor.GREEN + "");
+
+        yellow = teamBoard.registerNewTeam("Yellow");
+        yellow.setPrefix(ChatColor.YELLOW + "");
+
+        red = teamBoard.registerNewTeam("Red");
+        red.setPrefix(ChatColor.RED + "");
 
         cachedTime = ConfigHelper.getTimeHashmap(thirdLife.getTimeConfig());
         playerTimers = new HashMap<>();
@@ -38,6 +55,14 @@ public class ScoreboardManager {
         board.delete();
     }
 
+    public void setCachedTime(HashMap<UUID, Integer> map) {
+        this.cachedTime = map;
+    }
+
+    public HashMap<UUID, Integer> getCachedTime() {
+        return this.cachedTime;
+    }
+
     public void addTime(Player p, int minutes, boolean sayHours) {
         UUID uuid = p.getUniqueId();
         int time = getCachedTime(p);
@@ -45,7 +70,7 @@ public class ScoreboardManager {
         time += minutes * 60;
 
         cachedTime.put(uuid, time);
-        if(sayHours) {
+        if (sayHours) {
             int hours = (minutes / 60);
 
             ChatUtil.sendTitle(p, "&a+" + hours + " hours", "", 60);
@@ -61,7 +86,7 @@ public class ScoreboardManager {
         time -= minutes * 60;
 
         cachedTime.put(uuid, time);
-        if(sayHours) {
+        if (sayHours) {
             int hours = (minutes / 60);
 
             ChatUtil.sendTitle(p, "&c-" + hours + " hours", "", 20);
@@ -80,8 +105,8 @@ public class ScoreboardManager {
 
     public FastBoard createTimerBoard(Player p) {
         FastBoard fastBoard = new FastBoard(p);
-        fastBoard.updateTitle(ChatUtil.colorize("&c&lLimited Life"));
-        fastBoard.updateLines(ChatUtil.colorize("&a" + TimeUtil.unixToHourMinuteSecond(getCachedTime(p))));
+//        fastBoard.updateTitle(ChatUtil.colorize("&c&lLimited Life"));
+//        fastBoard.updateLines(ChatUtil.colorize("&a" + TimeUtil.unixToHourMinuteSecond(getCachedTime(p))));
         return fastBoard;
     }
 
@@ -91,7 +116,60 @@ public class ScoreboardManager {
 
     public void updateBoard(UUID uuid) {
         FastBoard fastBoard = playerTimers.get(uuid);
-        fastBoard.updateLines(ChatUtil.colorize("&a" + TimeUtil.unixToHourMinuteSecond(getCachedTime(uuid))));
+
+        int time = getCachedTime(uuid);
+
+        //green
+        int darkGreen = 0x00AA00;
+        int lightGreen = 0x55FF55;
+
+        //yellow
+        int lightYellow = 0xFFFF55;
+        int darkYellow = 0xFFAA00;
+
+        //red
+        int red = 0xFF5555;
+        int darkRed = 0xAA0000;
+
+        // < 0.66 = yellow, < 0.3 = red
+        float pcnt = (float) time / (float) unix24hrs;
+
+        float twoThirds = (2f / 3f);
+        float oneThird = (1f / 3f);
+
+        int lerped = 0;
+        if (pcnt <= 1f) {
+            float i = normalize01(1 - pcnt, 0f, 0.33f);
+            lerped = ColorUtil.lerpColor(darkGreen, lightGreen, i);
+        }
+        if (pcnt <= twoThirds) {
+            float i = normalize01(1 - pcnt,0.33f, 0.66f);
+            lerped = ColorUtil.lerpColor(lightYellow, darkYellow, i);
+        }
+        if (pcnt <= oneThird) {
+            float i = normalize01(1 - pcnt, 0.66f, 1f);
+            lerped = ColorUtil.lerpColor(red, darkRed, i);
+        }
+
+        String hex = Integer.toHexString(lerped);
+
+        if (hex.length() < 6) {
+            int toAppend = 6 - hex.length();
+            String empty = "0".repeat(toAppend);
+            hex = empty + hex;
+        }
+        String color = ColorUtil.hex("#" + hex + TimeUtil.unixToHourMinuteSecond(time));
+
+        fastBoard.updateLines(color);
+    }
+
+    float normalize01(float value, float startMin, float startMax) {
+        float targetMin = 0.0f;
+        float targetMax = 1.0f;
+        float normalized = (((value - startMin) / (startMax - startMin)) * (targetMax - targetMin)) + targetMin;
+        System.out.println("Non Normalized: " + value);
+        System.out.println("Normalized: " + normalized);
+        return normalized;
     }
 
 
@@ -105,7 +183,8 @@ public class ScoreboardManager {
                     cachedTime.put(uuid, time);
 
                     Player p = Bukkit.getPlayer(uuid);
-                    if(p != null) {
+                    if (p != null) {
+
                         updateBoard(uuid);
                     }
                 }

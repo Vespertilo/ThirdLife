@@ -1,6 +1,7 @@
 package me.vespertilo.thirdlife;
 
 import me.vespertilo.thirdlife.commands.StartSessionCommand;
+import me.vespertilo.thirdlife.config.ConfigHelper;
 import me.vespertilo.thirdlife.listeners.PersistentListeners;
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
@@ -61,25 +62,21 @@ public final class ThirdLife extends JavaPlugin {
     private void createTimeConfig() {
         timeConfigFile = new File(getDataFolder(), "times.yml");
         if (!timeConfigFile.exists()) {
-            timeConfigFile.getParentFile().mkdirs();
+            try {
+                timeConfigFile.createNewFile();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
             saveResource("times.yml", false);
         }
 
-        timeConfig = new YamlConfiguration();
-        try {
-            timeConfig.load(timeConfigFile);
-        } catch (IOException | InvalidConfigurationException e) {
-            e.printStackTrace();
-        }
-        /* User Edit:
-            Instead of the above Try/Catch, you can also use
-            YamlConfiguration.loadConfiguration(customConfigFile)
-        */
+        timeConfig = YamlConfiguration.loadConfiguration(timeConfigFile);
+
     }
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        ConfigHelper.setTimeHashmap(getTimeConfig(), timeConfigFile, scoreboardManager.getCachedTime());
     }
 
     public static ThirdLife getInstance() {
