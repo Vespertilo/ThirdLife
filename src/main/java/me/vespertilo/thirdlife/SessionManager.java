@@ -135,8 +135,6 @@ public class SessionManager {
                 i--;
             }
         }.runTaskTimer(thirdLife, 0L, 30L);
-
-        ChatUtil.sendGlobalMessage(boogeyman.getName());
     }
 
     public Player chooseBoogeyman() {
@@ -154,7 +152,7 @@ public class SessionManager {
         new BukkitRunnable() {
             @Override
             public void run() {
-                ChatUtil.sendTitle(boogeyman, "&cYou are cured!", "", 40);
+                ChatUtil.sendTitle(boogeyman, "&aYou are cured!", "", 40);
             }
         }.runTaskLater(thirdLife, 60L);
 
@@ -168,14 +166,24 @@ public class SessionManager {
         this.started = started;
     }
 
-    public static void start(ThirdLife thirdLife, boolean grace) {
-        thirdLife.sessionManager.startTimerCountdown(3, () -> {
-            thirdLife.sessionManager.setStarted(true);
-            thirdLife.sessionManager.startBoogeymanCountdown(0, 0);
+    public boolean isStarted() {
+        return started;
+    }
+
+    public void start(boolean grace) {
+        startTimerCountdown(3, () -> {
+            setStarted(true);
+            startBoogeymanCountdown(0, 0);
             if (grace) {
-                thirdLife.sessionManager.startGraceCountdown(20);
+                startGraceCountdown(20);
             }
         });
+    }
+
+    public void end() {
+        setStarted(false);
+
+        ChatUtil.sendGlobalMessage("&aThe session has ended.");
     }
 
     public Player getBoogeyman() {

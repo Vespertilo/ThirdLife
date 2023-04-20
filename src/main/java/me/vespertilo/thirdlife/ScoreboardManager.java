@@ -7,6 +7,8 @@ import me.vespertilo.thirdlife.utils.ColorUtil;
 import me.vespertilo.thirdlife.utils.TimeUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -104,6 +106,11 @@ public class ScoreboardManager {
 
         int time = getCachedTime(uuid);
 
+        if (time <= 0) {
+            fastBoard.updateLines("&00:00:00");
+            return;
+        }
+
         //green
         int darkGreen = 0x00AA00;
         int lightGreen = 0x55FF55;
@@ -129,7 +136,7 @@ public class ScoreboardManager {
             p.setPlayerListName(green + p.getName());
         }
         if (pcnt <= twoThirds) {
-            float i = normalize01(1 - pcnt,0.33f, 0.66f);
+            float i = normalize01(1 - pcnt, 0.33f, 0.66f);
             lerped = ColorUtil.lerpColor(lightYellow, darkYellow, i);
             p.setPlayerListName(yellow + p.getName());
             p.setDisplayName(yellow + p.getName());
@@ -159,7 +166,6 @@ public class ScoreboardManager {
         return (((value - startMin) / (startMax - startMin)) * (targetMax - targetMin)) + targetMin;
     }
 
-
     public void startTimerTick() {
         new BukkitRunnable() {
             @Override
@@ -172,6 +178,14 @@ public class ScoreboardManager {
                     Player p = Bukkit.getPlayer(uuid);
                     if (p != null) {
                         updateBoard(uuid);
+                        if (time <= 0) {
+                            p.setGameMode(GameMode.SPECTATOR);
+                            p.getWorld().strikeLightningEffect(p.getLocation());
+                            ChatUtil.sendTitle(p, "&cYou ran out of time.", "&cSkill Issue", 60);
+                            ChatUtil.sendGlobalMessage("&c" + p.getName() + " ran out of time.");
+                            ChatUtil.playGlobalSound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1f, 1f);
+                            cachedTime.remove(uuid);
+                        }
                     }
                 }
             }

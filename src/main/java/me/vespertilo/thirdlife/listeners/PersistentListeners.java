@@ -33,6 +33,7 @@ public class PersistentListeners implements Listener {
 
         Player killer = dead.getKiller();
         if (killer == null) {
+            thirdLife.scoreboardManager.removeTime(dead, 60, true);
             return;
         }
 
@@ -57,6 +58,10 @@ public class PersistentListeners implements Listener {
     public void onDamage(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player && event.getEntity() instanceof Player) {
             if (thirdLife.sessionManager.inGrace) {
+                event.setCancelled(true);
+            }
+
+            if (!thirdLife.sessionManager.isStarted()) {
                 event.setCancelled(true);
             }
         }
@@ -98,7 +103,6 @@ public class PersistentListeners implements Listener {
             ChatUtil.sendGlobalMessage("<" + teamColor + event.getPlayer().getName() + "&r> " + event.getMessage());
         }
     }
-
 
     @EventHandler
     public void onLeave(PlayerQuitEvent event) {

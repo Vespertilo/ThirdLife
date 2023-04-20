@@ -1,5 +1,7 @@
 package me.vespertilo.thirdlife;
 
+import me.vespertilo.thirdlife.commands.EndSessionCommand;
+import me.vespertilo.thirdlife.commands.RerollBoogeyCommand;
 import me.vespertilo.thirdlife.commands.StartSessionCommand;
 import me.vespertilo.thirdlife.config.ConfigHelper;
 import me.vespertilo.thirdlife.listeners.PersistentListeners;
@@ -60,6 +62,8 @@ public final class ThirdLife extends JavaPlugin {
 
     private void registerCommands() {
         this.getCommand("startsession").setExecutor(new StartSessionCommand(instance));
+        this.getCommand("endsession").setExecutor(new EndSessionCommand(instance));
+        this.getCommand("rollboogey").setExecutor(new RerollBoogeyCommand(instance));
     }
 
     private void enableCustomRecipes() {

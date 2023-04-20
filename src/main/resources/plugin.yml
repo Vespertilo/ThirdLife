@@ -7,3 +7,9 @@ commands:
   startsession:
     description: starts a session
     permission: op
+  endsession:
+    description: ends a session
+    permission: op
+  rollboogey:
+    description: rolls a new boogeyman
+    permission: op
