@@ -2,12 +2,9 @@ package me.vespertilo.thirdlife.listeners;
 
 import me.vespertilo.thirdlife.ScoreboardManager;
 import me.vespertilo.thirdlife.ThirdLife;
-import me.vespertilo.thirdlife.config.ConfigHelper;
 import me.vespertilo.thirdlife.utils.ChatUtil;
-import me.vespertilo.thirdlife.utils.ColorUtil;
 import me.vespertilo.thirdlife.utils.TimeUtil;
 import org.bukkit.ChatColor;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -16,19 +13,15 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.scoreboard.Scoreboard;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 import static me.vespertilo.thirdlife.ThirdLife.unix24hrs;
 
 public class PersistentListeners implements Listener {
 
-    private ThirdLife thirdLife;
+    private final ThirdLife thirdLife;
 
     public PersistentListeners(ThirdLife thirdLife) {
         this.thirdLife = thirdLife;
@@ -37,8 +30,6 @@ public class PersistentListeners implements Listener {
     @EventHandler
     public void onDeath(PlayerDeathEvent event) {
         Player dead = event.getEntity();
-
-
 
         Player killer = dead.getKiller();
         if (killer == null) {

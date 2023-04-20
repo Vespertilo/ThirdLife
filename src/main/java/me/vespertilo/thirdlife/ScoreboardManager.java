@@ -10,10 +10,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.UUID;
 
 import static me.vespertilo.thirdlife.ThirdLife.unix24hrs;
 
@@ -24,9 +23,9 @@ public class ScoreboardManager {
     private HashMap<UUID, Integer> cachedTime;
     private final HashMap<UUID, FastBoard> playerTimers;
 
-    private ChatColor green = ChatColor.GREEN;
-    private ChatColor yellow = ChatColor.YELLOW;
-    private ChatColor red = ChatColor.RED;
+    private final ChatColor green = ChatColor.GREEN;
+    private final ChatColor yellow = ChatColor.YELLOW;
+    private final ChatColor red = ChatColor.RED;
 
     public ScoreboardManager(ThirdLife thirdLife) {
         this.thirdLife = thirdLife;
@@ -93,14 +92,9 @@ public class ScoreboardManager {
     }
 
     public FastBoard createTimerBoard(Player p) {
-        FastBoard fastBoard = new FastBoard(p);
-//        fastBoard.updateTitle(ChatUtil.colorize("&c&lLimited Life"));
+        //        fastBoard.updateTitle(ChatUtil.colorize("&c&lLimited Life"));
 //        fastBoard.updateLines(ChatUtil.colorize("&a" + TimeUtil.unixToHourMinuteSecond(getCachedTime(p))));
-        return fastBoard;
-    }
-
-    public void updateBoard(Player p) {
-        updateBoard(p.getUniqueId());
+        return new FastBoard(p);
     }
 
     public void updateBoard(UUID uuid) {
@@ -162,13 +156,12 @@ public class ScoreboardManager {
     float normalize01(float value, float startMin, float startMax) {
         float targetMin = 0.0f;
         float targetMax = 1.0f;
-        float normalized = (((value - startMin) / (startMax - startMin)) * (targetMax - targetMin)) + targetMin;
-        return normalized;
+        return (((value - startMin) / (startMax - startMin)) * (targetMax - targetMin)) + targetMin;
     }
 
 
     public void startTimerTick() {
-        BukkitTask runnable = new BukkitRunnable() {
+        new BukkitRunnable() {
             @Override
             public void run() {
                 for (UUID uuid : cachedTime.keySet()) {

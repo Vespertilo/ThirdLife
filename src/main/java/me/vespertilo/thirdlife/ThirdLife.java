@@ -4,21 +4,17 @@ import me.vespertilo.thirdlife.commands.StartSessionCommand;
 import me.vespertilo.thirdlife.config.ConfigHelper;
 import me.vespertilo.thirdlife.listeners.PersistentListeners;
 import org.bukkit.*;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.UUID;
 
 public final class ThirdLife extends JavaPlugin {

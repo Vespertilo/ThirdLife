@@ -1,6 +1,5 @@
 package me.vespertilo.thirdlife.commands;
 
-import me.vespertilo.thirdlife.SessionManager;
 import me.vespertilo.thirdlife.ThirdLife;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

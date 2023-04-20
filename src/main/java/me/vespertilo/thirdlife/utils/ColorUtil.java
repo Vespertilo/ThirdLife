@@ -28,7 +28,7 @@ public class ColorUtil {
             char[] ch = replaceSharp.toCharArray();
             StringBuilder builder = new StringBuilder("");
             for (char c : ch) {
-                builder.append("&" + c);
+                builder.append("&").append(c);
             }
 
             message = message.replace(hexCode, builder.toString());

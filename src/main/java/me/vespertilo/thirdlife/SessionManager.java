@@ -3,20 +3,17 @@ package me.vespertilo.thirdlife;
 import me.vespertilo.thirdlife.utils.ChatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
-import org.bukkit.SoundCategory;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
 public class SessionManager {
 
-    private ThirdLife thirdLife;
+    private final ThirdLife thirdLife;
 
     private boolean started;
     public boolean inGrace;
@@ -53,16 +50,16 @@ public class SessionManager {
 
         ChatUtil.sendGlobalMessage("&cThe boogeyman is going to be chosen in " + (initialMinutes + secondaryMinutes) + " minutes.");
 
-        BukkitTask runnable = new BukkitRunnable() {
+        new BukkitRunnable() {
             @Override
             public void run() {
                 ChatUtil.sendGlobalMessage(("&cThe boogeyman is going to be chosen in " + secondaryMinutes + " minutes."));
-                BukkitTask runnable2 = new BukkitRunnable() {
+                new BukkitRunnable() {
                     @Override
                     public void run() {
                         ChatUtil.sendGlobalMessage("&cThe boogeyman is about to be chosen.");
                         ChatUtil.playGlobalSound(Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1f, 1f);
-                        BukkitTask runnable3 = new BukkitRunnable() {
+                        new BukkitRunnable() {
                             @Override
                             public void run() {
                                 rollBoogeyman();
@@ -79,12 +76,12 @@ public class SessionManager {
         inGrace = true;
 
         final String colors = "cea";
-        BukkitTask runnable = new BukkitRunnable() {
+        new BukkitRunnable() {
             @Override
             public void run() {
                 ChatUtil.sendGlobalMessage(("&aThe grace period is ending!"));
 
-                BukkitTask runnable = new BukkitRunnable() {
+                new BukkitRunnable() {
                     int i = 3;
 
                     @Override
@@ -111,7 +108,7 @@ public class SessionManager {
         boogeyman = chooseBoogeyman();
 
         final String colors = "cea";
-        BukkitTask runnable = new BukkitRunnable() {
+        new BukkitRunnable() {
             int i = 3;
 
             @Override
@@ -154,10 +151,10 @@ public class SessionManager {
 
     public void cureBoogey() {
         boogeyCured = true;
-        BukkitTask runnable = new BukkitRunnable() {
+        new BukkitRunnable() {
             @Override
             public void run() {
-                ChatUtil.sendTitle(boogeyman,"&cYou are cured!","",40);
+                ChatUtil.sendTitle(boogeyman, "&cYou are cured!", "", 40);
             }
         }.runTaskLater(thirdLife, 60L);
 
@@ -172,11 +169,10 @@ public class SessionManager {
     }
 
     public static void start(ThirdLife thirdLife, boolean grace) {
-        thirdLife.sessionManager = new SessionManager(thirdLife);
         thirdLife.sessionManager.startTimerCountdown(3, () -> {
             thirdLife.sessionManager.setStarted(true);
             thirdLife.sessionManager.startBoogeymanCountdown(0, 0);
-            if(grace) {
+            if (grace) {
                 thirdLife.sessionManager.startGraceCountdown(20);
             }
         });
