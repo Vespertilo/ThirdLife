@@ -30,7 +30,6 @@ public class ConfigHelper {
     public static HashMap<UUID, Integer> getTimeHashmap(FileConfiguration config) {
         HashMap<UUID, Integer> map = new HashMap<>();
         List<String> values = config.getStringList("time");
-        System.out.println(values);
         for (String str : values) {
             String[] split = str.split(": ");
             String uuidStr = split[0];

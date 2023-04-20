@@ -24,23 +24,12 @@ public class ScoreboardManager {
     private HashMap<UUID, Integer> cachedTime;
     private final HashMap<UUID, FastBoard> playerTimers;
 
-    private Team green;
-    private Team yellow;
-    private Team red;
-    private Scoreboard teamBoard;
+    private ChatColor green = ChatColor.GREEN;
+    private ChatColor yellow = ChatColor.YELLOW;
+    private ChatColor red = ChatColor.RED;
 
     public ScoreboardManager(ThirdLife thirdLife) {
         this.thirdLife = thirdLife;
-
-        teamBoard = Bukkit.getScoreboardManager().getNewScoreboard();
-        green = teamBoard.registerNewTeam("Green");
-        green.setPrefix(ChatColor.GREEN + "");
-
-        yellow = teamBoard.registerNewTeam("Yellow");
-        yellow.setPrefix(ChatColor.YELLOW + "");
-
-        red = teamBoard.registerNewTeam("Red");
-        red.setPrefix(ChatColor.RED + "");
 
         cachedTime = ConfigHelper.getTimeHashmap(thirdLife.getTimeConfig());
         playerTimers = new HashMap<>();
@@ -117,6 +106,8 @@ public class ScoreboardManager {
     public void updateBoard(UUID uuid) {
         FastBoard fastBoard = playerTimers.get(uuid);
 
+        Player p = Bukkit.getPlayer(uuid);
+
         int time = getCachedTime(uuid);
 
         //green
@@ -128,7 +119,7 @@ public class ScoreboardManager {
         int darkYellow = 0xFFAA00;
 
         //red
-        int red = 0xFF5555;
+        int lightRed = 0xFF5555;
         int darkRed = 0xAA0000;
 
         // < 0.66 = yellow, < 0.3 = red
@@ -141,14 +132,19 @@ public class ScoreboardManager {
         if (pcnt <= 1f) {
             float i = normalize01(1 - pcnt, 0f, 0.33f);
             lerped = ColorUtil.lerpColor(darkGreen, lightGreen, i);
+            p.setPlayerListName(green + p.getName());
         }
         if (pcnt <= twoThirds) {
             float i = normalize01(1 - pcnt,0.33f, 0.66f);
             lerped = ColorUtil.lerpColor(lightYellow, darkYellow, i);
+            p.setPlayerListName(yellow + p.getName());
+            p.setDisplayName(yellow + p.getName());
         }
         if (pcnt <= oneThird) {
             float i = normalize01(1 - pcnt, 0.66f, 1f);
-            lerped = ColorUtil.lerpColor(red, darkRed, i);
+            lerped = ColorUtil.lerpColor(lightRed, darkRed, i);
+            p.setPlayerListName(red + p.getName());
+            p.setDisplayName(red + p.getName());
         }
 
         String hex = Integer.toHexString(lerped);
@@ -167,8 +163,6 @@ public class ScoreboardManager {
         float targetMin = 0.0f;
         float targetMax = 1.0f;
         float normalized = (((value - startMin) / (startMax - startMin)) * (targetMax - targetMin)) + targetMin;
-        System.out.println("Non Normalized: " + value);
-        System.out.println("Normalized: " + normalized);
         return normalized;
     }
 
@@ -184,7 +178,6 @@ public class ScoreboardManager {
 
                     Player p = Bukkit.getPlayer(uuid);
                     if (p != null) {
-
                         updateBoard(uuid);
                     }
                 }

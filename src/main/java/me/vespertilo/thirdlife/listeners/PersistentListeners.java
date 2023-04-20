@@ -3,7 +3,9 @@ package me.vespertilo.thirdlife.listeners;
 import me.vespertilo.thirdlife.ScoreboardManager;
 import me.vespertilo.thirdlife.ThirdLife;
 import me.vespertilo.thirdlife.config.ConfigHelper;
+import me.vespertilo.thirdlife.utils.ChatUtil;
 import me.vespertilo.thirdlife.utils.ColorUtil;
+import me.vespertilo.thirdlife.utils.TimeUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -11,6 +13,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -35,7 +38,7 @@ public class PersistentListeners implements Listener {
     public void onDeath(PlayerDeathEvent event) {
         Player dead = event.getEntity();
 
-        thirdLife.scoreboardManager.removeTime(dead, 60, true);
+
 
         Player killer = dead.getKiller();
         if (killer == null) {
@@ -46,12 +49,16 @@ public class PersistentListeners implements Listener {
             if (!thirdLife.sessionManager.boogeyCured) {
                 thirdLife.scoreboardManager.addTime(killer, 60, true);
                 thirdLife.sessionManager.cureBoogey();
+
+                thirdLife.scoreboardManager.removeTime(dead, 120, true);
             } else {
                 thirdLife.scoreboardManager.addTime(killer, 30, false);
+                thirdLife.scoreboardManager.removeTime(dead, 60, true);
             }
 
         } else {
             thirdLife.scoreboardManager.addTime(killer, 30, false);
+            thirdLife.scoreboardManager.removeTime(dead, 60, true);
         }
     }
 
@@ -71,7 +78,7 @@ public class PersistentListeners implements Listener {
         Player p = event.getPlayer();
         UUID uuid = p.getUniqueId();
 
-        HashMap<UUID, Integer> times = ConfigHelper.getTimeHashmap(thirdLife.getTimeConfig());
+        HashMap<UUID, Integer> times = scoreboardManager.getCachedTime();
 
         if (!times.containsKey(uuid)) {
             times.put(uuid, unix24hrs);
@@ -79,50 +86,28 @@ public class PersistentListeners implements Listener {
 
         scoreboardManager.setCachedTime(times);
         scoreboardManager.addPlayer(p);
-
-        colors(p);
     }
 
-    private void colors(Player p) {
-        int color1 = 0x00AA00;
-        int color2 = 0xFFFF55;
-        int color3 = 0xFF5555;
+    @EventHandler
+    public void onChat(AsyncPlayerChatEvent event) {
+        ScoreboardManager scoreboardManager = thirdLife.scoreboardManager;
+        Player p = event.getPlayer();
+        UUID uuid = p.getUniqueId();
 
-        BukkitTask task = new BukkitRunnable() {
-            float i = 0;
+        HashMap<UUID, Integer> times = scoreboardManager.getCachedTime();
 
-            @Override
-            public void run() {
-                int lerped;
-                if (i <= 1f) {
-                    lerped = ColorUtil.lerpColor(color1, color2, i);
-                } else if (i > 1f) {
+        if (!times.containsKey(uuid)) {
+            times.put(uuid, unix24hrs);
+        } else {
+            event.setCancelled(true);
 
-                    lerped = ColorUtil.lerpColor(color2, color3, i - 1);
-                } else {
-                    lerped = 0x000000f;
-                }
+            int time = times.get(uuid);
+            ChatColor teamColor = TimeUtil.getTimeColor(time);
 
-                String hex = Integer.toHexString(lerped);
-
-                if (hex.length() < 6) {
-                    int toAppend = 6 - hex.length();
-                    String empty = "0".repeat(toAppend);
-                    hex = empty + hex;
-                }
-                String color = ColorUtil.hex("#" + hex + p.getDisplayName());
-
-                p.setPlayerListName(color);
-
-
-                if (i > 2f) {
-                    colors(p);
-                    this.cancel();
-                }
-                i += 0.05f;
-            }
-        }.runTaskTimer(thirdLife, 10L, 10L);
+            ChatUtil.sendGlobalMessage("<" + teamColor + event.getPlayer().getName() + "&r> " + event.getMessage());
+        }
     }
+
 
     @EventHandler
     public void onLeave(PlayerQuitEvent event) {
