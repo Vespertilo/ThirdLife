@@ -25,6 +25,8 @@ public class ScoreboardManager {
     private HashMap<UUID, Integer> cachedTime;
     private final HashMap<UUID, FastBoard> playerTimers;
 
+    private BukkitTask timer;
+
     private final ChatColor green = ChatColor.GREEN;
     private final ChatColor yellow = ChatColor.YELLOW;
     private final ChatColor red = ChatColor.RED;
@@ -167,7 +169,7 @@ public class ScoreboardManager {
     }
 
     public void startTimerTick() {
-        new BukkitRunnable() {
+        timer = new BukkitRunnable() {
             @Override
             public void run() {
                 for (UUID uuid : cachedTime.keySet()) {
@@ -190,5 +192,9 @@ public class ScoreboardManager {
                 }
             }
         }.runTaskTimer(thirdLife, 20L, 20L);
+    }
+
+    public void endTimerTick() {
+        timer.cancel();
     }
 }

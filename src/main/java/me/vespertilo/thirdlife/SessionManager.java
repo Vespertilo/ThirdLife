@@ -162,6 +162,10 @@ public class SessionManager {
         this.thirdLife.scoreboardManager.startTimerTick();
     }
 
+    public void endTimers() {
+        this.thirdLife.scoreboardManager.endTimerTick();
+    }
+
     public void setStarted(boolean started) {
         this.started = started;
     }
@@ -182,7 +186,7 @@ public class SessionManager {
 
     public void end() {
         setStarted(false);
-
+        endTimers();
         ChatUtil.sendGlobalMessage("&aThe session has ended.");
     }
 

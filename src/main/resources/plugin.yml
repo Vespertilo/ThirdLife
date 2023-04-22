@@ -13,3 +13,6 @@ commands:
   rollboogey:
     description: rolls a new boogeyman
     permission: op
+  time:
+    description: adds and removes time from a player
+    permission: op

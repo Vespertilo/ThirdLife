@@ -3,6 +3,7 @@ package me.vespertilo.thirdlife;
 import me.vespertilo.thirdlife.commands.EndSessionCommand;
 import me.vespertilo.thirdlife.commands.RerollBoogeyCommand;
 import me.vespertilo.thirdlife.commands.StartSessionCommand;
+import me.vespertilo.thirdlife.commands.TimeCommand;
 import me.vespertilo.thirdlife.config.ConfigHelper;
 import me.vespertilo.thirdlife.listeners.PersistentListeners;
 import org.bukkit.*;
@@ -12,6 +13,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,6 +67,7 @@ public final class ThirdLife extends JavaPlugin {
         this.getCommand("startsession").setExecutor(new StartSessionCommand(instance));
         this.getCommand("endsession").setExecutor(new EndSessionCommand(instance));
         this.getCommand("rollboogey").setExecutor(new RerollBoogeyCommand(instance));
+        this.getCommand("time").setExecutor(new TimeCommand(instance));
     }
 
     private void enableCustomRecipes() {
@@ -73,7 +77,7 @@ public final class ThirdLife extends JavaPlugin {
             recipe = it.next();
             if (recipe != null) {
                 switch (recipe.getResult().getType()) {
-                    case BOOKSHELF, TNT -> it.remove();
+                    case BOOKSHELF, TNT, LEATHER_HELMET, IRON_HELMET, GOLDEN_HELMET, DIAMOND_HELMET, NETHERITE_HELMET -> it.remove();
                     default -> {
                     }
                 }
