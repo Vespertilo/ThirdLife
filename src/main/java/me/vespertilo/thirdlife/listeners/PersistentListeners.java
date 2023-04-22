@@ -83,8 +83,6 @@ public class PersistentListeners implements Listener {
         scoreboardManager.setCachedTime(times);
         scoreboardManager.addPlayer(p);
 
-        thirdLife.red.addEntry(p.getName());
-        p.setScoreboard(thirdLife.board);
     }
 
     @EventHandler
