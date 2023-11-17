@@ -87,7 +87,7 @@ public final class ThirdLife extends JavaPlugin {
         ItemStack tnt = new ItemStack(Material.TNT);
         ItemStack nametag = new ItemStack(Material.NAME_TAG);
 
-        ShapedRecipe tntRecipe = new ShapedRecipe(new NamespacedKey(this, "tnt"), tnt);
+        ShapedRecipe tntRecipe = new ShapedRecipe(new NamespacedKey(this, "tntnew"), tnt);
         tntRecipe.shape("PSP", "SGS", "PSP");
         tntRecipe.setIngredient('P', Material.PAPER);
         tntRecipe.setIngredient('S', Material.SAND);
@@ -100,8 +100,6 @@ public final class ThirdLife extends JavaPlugin {
 
         Bukkit.addRecipe(tntRecipe);
         Bukkit.addRecipe(nametagRecipe);
-
-
     }
 
     public FileConfiguration getTimeConfig() {
@@ -110,17 +108,15 @@ public final class ThirdLife extends JavaPlugin {
 
     private void createTimeConfig() {
         timeConfigFile = new File(getDataFolder(), "times.yml");
-        if (!timeConfigFile.exists()) {
-            try {
-                timeConfigFile.createNewFile();
-            } catch (IOException ex) {
-                ex.printStackTrace();
+        try {
+            boolean created = timeConfigFile.createNewFile();
+            if (created) {
+                saveResource("times.yml", false);
             }
-            saveResource("times.yml", false);
+        } catch (IOException ex) {
+            ex.printStackTrace();
         }
-
         timeConfig = YamlConfiguration.loadConfiguration(timeConfigFile);
-
     }
 
     @Override

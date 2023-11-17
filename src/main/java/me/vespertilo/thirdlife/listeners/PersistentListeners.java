@@ -4,10 +4,13 @@ import me.vespertilo.thirdlife.ScoreboardManager;
 import me.vespertilo.thirdlife.ThirdLife;
 import me.vespertilo.thirdlife.utils.ChatUtil;
 import me.vespertilo.thirdlife.utils.TimeUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
@@ -15,6 +18,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.HashMap;
+import java.util.Objects;
 import java.util.UUID;
 
 import static me.vespertilo.thirdlife.ThirdLife.unix24hrs;
@@ -68,6 +72,13 @@ public class PersistentListeners implements Listener {
     }
 
     @EventHandler
+    public void onBreak(BlockBreakEvent event) {
+        if (!thirdLife.sessionManager.isStarted()) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
     public void onJoin(PlayerJoinEvent event) {
         ScoreboardManager scoreboardManager = thirdLife.scoreboardManager;
 
@@ -83,6 +94,8 @@ public class PersistentListeners implements Listener {
         scoreboardManager.setCachedTime(times);
         scoreboardManager.addPlayer(p);
 
+        p.discoverRecipe(new NamespacedKey(thirdLife, "tntnew"));
+        p.discoverRecipe(new NamespacedKey(thirdLife, "nametagnew"));
     }
 
     @EventHandler

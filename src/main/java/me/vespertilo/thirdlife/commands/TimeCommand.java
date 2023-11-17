@@ -20,6 +20,7 @@ public class TimeCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length < 3) {
+            sender.sendMessage(ChatUtil.colorize("&c/time <add/remove> <int> <player>"));
             return false;
         }
 

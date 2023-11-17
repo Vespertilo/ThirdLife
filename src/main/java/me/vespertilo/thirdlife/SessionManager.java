@@ -153,6 +153,7 @@ public class SessionManager {
             @Override
             public void run() {
                 ChatUtil.sendTitle(boogeyman, "&aYou are cured!", "", 40);
+                boogeyman.sendMessage(ChatUtil.colorize("&aYou have been cured!"));
             }
         }.runTaskLater(thirdLife, 60L);
 
