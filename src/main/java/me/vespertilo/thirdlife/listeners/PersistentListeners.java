@@ -105,6 +105,7 @@ public class PersistentListeners implements Listener {
 
         p.discoverRecipe(new NamespacedKey(thirdLife, "tntnew"));
         p.discoverRecipe(new NamespacedKey(thirdLife, "nametagnew"));
+        p.discoverRecipe(new NamespacedKey(thirdLife, "saddle"));
     }
 
     @EventHandler

@@ -24,6 +24,8 @@ public final class ThirdLife extends JavaPlugin {
     public SessionManager sessionManager;
     public TimeManager timeManager;
 
+    private CustomRecipes customRecipes;
+
     public static final int unix24hrs = 86400;
 
     @Override
@@ -34,12 +36,15 @@ public final class ThirdLife extends JavaPlugin {
         sessionManager = new SessionManager(instance);
         timeManager = new TimeManager(instance);
 
+        customRecipes = new CustomRecipes(instance);
+
         configManager.createTimeConfig();
 
         //must be done AFTER config is loaded
         timeManager.loadTimeMap();
 
-        enableCustomRecipes();
+        customRecipes.disableVanillaCrafts();
+        customRecipes.addCustomRecipes();
 
         registerListeners();
         registerCommands();
@@ -62,39 +67,6 @@ public final class ThirdLife extends JavaPlugin {
         this.getCommand("time").setExecutor(new TimeCommand(instance));
 
         this.getCommand("time").setTabCompleter(new TabComplete());
-    }
-
-    private void enableCustomRecipes() {
-        Iterator<Recipe> it = getServer().recipeIterator();
-        Recipe recipe;
-        while (it.hasNext()) {
-            recipe = it.next();
-            if (recipe != null) {
-                switch (recipe.getResult().getType()) {
-                    case BOOKSHELF, TNT, LEATHER_HELMET, IRON_HELMET, GOLDEN_HELMET, DIAMOND_HELMET, NETHERITE_HELMET ->
-                            it.remove();
-                    default -> {
-                    }
-                }
-            }
-        }
-
-        ItemStack tnt = new ItemStack(Material.TNT);
-        ItemStack nametag = new ItemStack(Material.NAME_TAG);
-
-        ShapedRecipe tntRecipe = new ShapedRecipe(new NamespacedKey(this, "tntnew"), tnt);
-        tntRecipe.shape("PSP", "SGS", "PSP");
-        tntRecipe.setIngredient('P', Material.PAPER);
-        tntRecipe.setIngredient('S', Material.SAND);
-        tntRecipe.setIngredient('G', Material.GUNPOWDER);
-
-        ShapedRecipe nametagRecipe = new ShapedRecipe(new NamespacedKey(this, "nametagnew"), nametag);
-        nametagRecipe.shape("   ", " S ", " P ");
-        nametagRecipe.setIngredient('S', Material.STRING);
-        nametagRecipe.setIngredient('P', Material.PAPER);
-
-        Bukkit.addRecipe(tntRecipe);
-        Bukkit.addRecipe(nametagRecipe);
     }
 
     @Override
