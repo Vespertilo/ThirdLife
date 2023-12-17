@@ -1,5 +1,6 @@
 package me.vespertilo.thirdlife;
 
+import me.vespertilo.thirdlife.jingle.Jingles;
 import me.vespertilo.thirdlife.utils.ChatUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -122,7 +123,8 @@ public class SessionManager {
                 }
                 if (i < 0) {
                     ChatUtil.sendTitle(boogeyman, "&cThe Boogeyman.", "", 60);
-                    boogeyman.playSound(boogeyman.getLocation(), Sound.ITEM_GOAT_HORN_SOUND_6, 1f, 0f);
+//                    boogeyman.playSound(boogeyman.getLocation(), Sound.ITEM_GOAT_HORN_SOUND_6, 1f, 0f);
+                    Jingles.playWhistle(boogeyman);
 
                     List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
                     players.removeIf(p -> p.getUniqueId().equals(boogeyman.getUniqueId()));
@@ -160,11 +162,11 @@ public class SessionManager {
     }
 
     public void startTimers() {
-        this.thirdLife.scoreboardManager.startTimerTick();
+        this.thirdLife.timeManager.startTimerTick();
     }
 
     public void endTimers() {
-        this.thirdLife.scoreboardManager.endTimerTick();
+        this.thirdLife.timeManager.endTimerTick();
     }
 
     public void setStarted(boolean started) {
@@ -178,7 +180,7 @@ public class SessionManager {
     public void start(boolean grace) {
         startTimerCountdown(3, () -> {
             setStarted(true);
-            startBoogeymanCountdown(0, 0);
+            startBoogeymanCountdown(4, 1);
             if (grace) {
                 startGraceCountdown(20);
             }

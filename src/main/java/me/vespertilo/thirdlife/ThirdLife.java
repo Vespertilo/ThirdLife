@@ -4,33 +4,25 @@ import me.vespertilo.thirdlife.commands.EndSessionCommand;
 import me.vespertilo.thirdlife.commands.RerollBoogeyCommand;
 import me.vespertilo.thirdlife.commands.StartSessionCommand;
 import me.vespertilo.thirdlife.commands.TimeCommand;
-import me.vespertilo.thirdlife.config.ConfigHelper;
+import me.vespertilo.thirdlife.commands.tabcomplete.TabComplete;
+import me.vespertilo.thirdlife.config.ConfigManager;
 import me.vespertilo.thirdlife.listeners.PersistentListeners;
+import me.vespertilo.thirdlife.time.TimeManager;
 import org.bukkit.*;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.UUID;
 
 public final class ThirdLife extends JavaPlugin {
 
     private static ThirdLife instance;
 
+    public ConfigManager configManager;
     public SessionManager sessionManager;
-    public ScoreboardManager scoreboardManager;
-
-    private File timeConfigFile;
-    private FileConfiguration timeConfig;
+    public TimeManager timeManager;
 
     public static final int unix24hrs = 86400;
 
@@ -38,18 +30,19 @@ public final class ThirdLife extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
-        createTimeConfig();
+        configManager = new ConfigManager(instance);
+        sessionManager = new SessionManager(instance);
+        timeManager = new TimeManager(instance);
+
+        configManager.createTimeConfig();
+
+        //must be done AFTER config is loaded
+        timeManager.loadTimeMap();
 
         enableCustomRecipes();
 
         registerListeners();
         registerCommands();
-
-        sessionManager = new SessionManager(instance);
-        scoreboardManager = new ScoreboardManager(instance);
-
-        HashMap<UUID, Integer> times = ConfigHelper.getTimeHashmap(instance.getTimeConfig());
-        scoreboardManager.setCachedTime(times);
 
         for (World w : Bukkit.getWorlds()) {
             w.setGameRule(GameRule.KEEP_INVENTORY, true);
@@ -60,7 +53,7 @@ public final class ThirdLife extends JavaPlugin {
     }
 
     private void registerListeners() {
-        Bukkit.getPluginManager().registerEvents(new PersistentListeners(instance), this);
+        Bukkit.getPluginManager().registerEvents(new PersistentListeners(instance, sessionManager, timeManager), this);
     }
 
     private void registerCommands() {
@@ -68,6 +61,8 @@ public final class ThirdLife extends JavaPlugin {
         this.getCommand("endsession").setExecutor(new EndSessionCommand(instance));
         this.getCommand("rollboogey").setExecutor(new RerollBoogeyCommand(instance));
         this.getCommand("time").setExecutor(new TimeCommand(instance));
+
+        this.getCommand("time").setTabCompleter(new TabComplete());
     }
 
     private void enableCustomRecipes() {
@@ -77,7 +72,8 @@ public final class ThirdLife extends JavaPlugin {
             recipe = it.next();
             if (recipe != null) {
                 switch (recipe.getResult().getType()) {
-                    case BOOKSHELF, TNT, LEATHER_HELMET, IRON_HELMET, GOLDEN_HELMET, DIAMOND_HELMET, NETHERITE_HELMET -> it.remove();
+                    case BOOKSHELF, TNT, LEATHER_HELMET, IRON_HELMET, GOLDEN_HELMET, DIAMOND_HELMET, NETHERITE_HELMET ->
+                            it.remove();
                     default -> {
                     }
                 }
@@ -102,26 +98,9 @@ public final class ThirdLife extends JavaPlugin {
         Bukkit.addRecipe(nametagRecipe);
     }
 
-    public FileConfiguration getTimeConfig() {
-        return timeConfig;
-    }
-
-    private void createTimeConfig() {
-        timeConfigFile = new File(getDataFolder(), "times.yml");
-        try {
-            boolean created = timeConfigFile.createNewFile();
-            if (created) {
-                saveResource("times.yml", false);
-            }
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-        timeConfig = YamlConfiguration.loadConfiguration(timeConfigFile);
-    }
-
     @Override
     public void onDisable() {
-        ConfigHelper.setTimeHashmap(getTimeConfig(), timeConfigFile, scoreboardManager.getCachedTime());
+        configManager.saveTimeConfig();
     }
 
     public static ThirdLife getInstance() {

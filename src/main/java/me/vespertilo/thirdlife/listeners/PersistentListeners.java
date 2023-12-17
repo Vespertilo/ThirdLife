@@ -1,16 +1,17 @@
 package me.vespertilo.thirdlife.listeners;
 
-import me.vespertilo.thirdlife.ScoreboardManager;
+import me.vespertilo.thirdlife.time.TimeManager;
+import me.vespertilo.thirdlife.SessionManager;
 import me.vespertilo.thirdlife.ThirdLife;
 import me.vespertilo.thirdlife.utils.ChatUtil;
 import me.vespertilo.thirdlife.utils.TimeUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
@@ -18,7 +19,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.UUID;
 
 import static me.vespertilo.thirdlife.ThirdLife.unix24hrs;
@@ -26,9 +26,13 @@ import static me.vespertilo.thirdlife.ThirdLife.unix24hrs;
 public class PersistentListeners implements Listener {
 
     private final ThirdLife thirdLife;
+    private final SessionManager sessionManager;
+    private final TimeManager timeManager;
 
-    public PersistentListeners(ThirdLife thirdLife) {
+    public PersistentListeners(ThirdLife thirdLife, SessionManager sessionManager, TimeManager timeManager) {
         this.thirdLife = thirdLife;
+        this.sessionManager = sessionManager;
+        this.timeManager = timeManager;
     }
 
     @EventHandler
@@ -37,35 +41,35 @@ public class PersistentListeners implements Listener {
 
         Player killer = dead.getKiller();
         if (killer == null) {
-            thirdLife.scoreboardManager.removeTime(dead, 60, true);
+            timeManager.removeTime(dead, 60, true);
             return;
         }
 
-        if (killer.getUniqueId().equals(thirdLife.sessionManager.getBoogeyman().getUniqueId())) {
-            if (!thirdLife.sessionManager.boogeyCured) {
-                thirdLife.scoreboardManager.addTime(killer, 60, true);
-                thirdLife.sessionManager.cureBoogey();
+        if (killer.getUniqueId().equals(sessionManager.getBoogeyman().getUniqueId())) {
+            if (!sessionManager.boogeyCured) {
+                timeManager.addTime(killer, 60, true);
+                sessionManager.cureBoogey();
 
-                thirdLife.scoreboardManager.removeTime(dead, 120, true);
+                timeManager.removeTime(dead, 120, true);
             } else {
-                thirdLife.scoreboardManager.addTime(killer, 30, false);
-                thirdLife.scoreboardManager.removeTime(dead, 60, true);
+                timeManager.addTime(killer, 30, false);
+                timeManager.removeTime(dead, 60, true);
             }
 
         } else {
-            thirdLife.scoreboardManager.addTime(killer, 30, false);
-            thirdLife.scoreboardManager.removeTime(dead, 60, true);
+            timeManager.addTime(killer, 30, false);
+            timeManager.removeTime(dead, 60, true);
         }
     }
 
     @EventHandler
     public void onDamage(EntityDamageByEntityEvent event) {
         if (event.getDamager() instanceof Player && event.getEntity() instanceof Player) {
-            if (thirdLife.sessionManager.inGrace) {
+            if (sessionManager.inGrace) {
                 event.setCancelled(true);
             }
 
-            if (!thirdLife.sessionManager.isStarted()) {
+            if (!sessionManager.isStarted()) {
                 event.setCancelled(true);
             }
         }
@@ -73,26 +77,31 @@ public class PersistentListeners implements Listener {
 
     @EventHandler
     public void onBreak(BlockBreakEvent event) {
-        if (!thirdLife.sessionManager.isStarted()) {
+        if (!sessionManager.isStarted()) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPlace(BlockPlaceEvent event) {
+        if (!sessionManager.isStarted()) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
-        ScoreboardManager scoreboardManager = thirdLife.scoreboardManager;
 
         Player p = event.getPlayer();
         UUID uuid = p.getUniqueId();
 
-        HashMap<UUID, Integer> times = scoreboardManager.getCachedTime();
+        HashMap<UUID, Integer> times = timeManager.getCachedTimes();
 
         if (!times.containsKey(uuid)) {
             times.put(uuid, unix24hrs);
         }
 
-        scoreboardManager.setCachedTime(times);
-        scoreboardManager.addPlayer(p);
+        timeManager.setCachedTimes(times);
 
         p.discoverRecipe(new NamespacedKey(thirdLife, "tntnew"));
         p.discoverRecipe(new NamespacedKey(thirdLife, "nametagnew"));
@@ -100,11 +109,10 @@ public class PersistentListeners implements Listener {
 
     @EventHandler
     public void onChat(AsyncPlayerChatEvent event) {
-        ScoreboardManager scoreboardManager = thirdLife.scoreboardManager;
         Player p = event.getPlayer();
         UUID uuid = p.getUniqueId();
 
-        HashMap<UUID, Integer> times = scoreboardManager.getCachedTime();
+        HashMap<UUID, Integer> times = timeManager.getCachedTimes();
 
         if (!times.containsKey(uuid)) {
             times.put(uuid, unix24hrs);
@@ -120,10 +128,6 @@ public class PersistentListeners implements Listener {
 
     @EventHandler
     public void onLeave(PlayerQuitEvent event) {
-        ScoreboardManager scoreboardManager = thirdLife.scoreboardManager;
 
-        Player p = event.getPlayer();
-
-        scoreboardManager.removePlayer(p);
     }
 }

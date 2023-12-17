@@ -3,7 +3,6 @@ package me.vespertilo.thirdlife.commands;
 import me.vespertilo.thirdlife.ThirdLife;
 import me.vespertilo.thirdlife.utils.ChatUtil;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -48,11 +47,11 @@ public class TimeCommand implements CommandExecutor {
 
         switch (arg1) {
             case "add" -> {
-                thirdLife.scoreboardManager.addTime(target, timeAmount, hours);
+                thirdLife.timeManager.addTime(target, timeAmount, hours);
                 sender.sendMessage(ChatUtil.colorize("&aAdded " + timeAmount + " minutes to " + target.getName() + "."));
             }
             case "remove" -> {
-                thirdLife.scoreboardManager.removeTime(target, timeAmount, hours);
+                thirdLife.timeManager.removeTime(target, timeAmount, hours);
                 sender.sendMessage(ChatUtil.colorize("&cRemoved " + timeAmount + " minutes from " + target.getName() + "."));
             }
         }
