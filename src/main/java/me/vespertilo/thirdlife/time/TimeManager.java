@@ -88,7 +88,8 @@ public class TimeManager {
 
                     Player p = Bukkit.getPlayer(uuid);
                     if (p != null) {
-                        timeDisplay.displayTime(p,  time);
+//                        timeDisplay.updateActionbarDisplay(p,  time);
+                        timeDisplay.updatePlayerDisplay(p, time);
 //                        updateBoard(uuid);
                         if (time <= 0) {
                             p.setGameMode(GameMode.SPECTATOR);

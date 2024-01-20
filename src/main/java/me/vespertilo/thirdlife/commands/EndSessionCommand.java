@@ -16,6 +16,7 @@ public class EndSessionCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         thirdLife.sessionManager.end();
+        System.out.println("Boogeyman: " + thirdLife.sessionManager.getBoogeyman().getName());
         return false;
     }
 }

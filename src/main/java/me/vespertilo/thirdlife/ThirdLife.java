@@ -52,7 +52,8 @@ public final class ThirdLife extends JavaPlugin {
         for (World w : Bukkit.getWorlds()) {
             w.setGameRule(GameRule.KEEP_INVENTORY, true);
             WorldBorder border = w.getWorldBorder();
-            border.setSize(700);
+            border.setSize(500);
+            border.setCenter(100.5, 0.5);
         }
     }
 
